@@ -15,6 +15,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import java.util.HashSet;
 import java.util.Set;
 
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -28,6 +29,8 @@ public class PcmValue extends BaseEntity {
     @NaturalId
     private Long pcmValue;
 
+    /*private int channelType;*/
+
     @ManyToMany(
         fetch = FetchType.EAGER,
             cascade = CascadeType.ALL
@@ -38,7 +41,7 @@ public class PcmValue extends BaseEntity {
             joinColumns = { @JoinColumn(name="pcm_id")},
             inverseJoinColumns = { @JoinColumn(name = "song_id")}
     )
-    private Set<Song> songSet;
+    private Set<Song> songSet = new HashSet<>();
 
     public Long getId() {
         return id;

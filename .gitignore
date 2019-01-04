@@ -17,6 +17,7 @@
 *.ipr
 
 ./idea/*
+.mvn/*
 ### NetBeans ###
 /nbproject/private/
 /build/
