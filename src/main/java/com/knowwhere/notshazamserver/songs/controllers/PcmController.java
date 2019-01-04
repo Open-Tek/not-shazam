@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,11 @@ public class PcmController {
             return ResponseEntity.badRequest().body("empty file");
 
         return ResponseEntity.ok().body(this.pcmService.insertSong(song, multipartFile));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getSongSet(@RequestParam("pcm[]") Long []pcmValues){
+        return ResponseEntity.ok().body(this.pcmService.getPcmSongs(pcmValues));
     }
 
 }

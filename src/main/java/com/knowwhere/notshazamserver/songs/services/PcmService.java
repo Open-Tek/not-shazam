@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Service
 public class PcmService {
@@ -29,6 +30,25 @@ public class PcmService {
 
         new WorkerThread(s, multipartFile.getBytes()).start();
         return s;
+
+    }
+
+    public Set<Song> getPcmSongs(Long pcmValues[]){
+        PcmValue pcm = this.findByPcmValue(pcmValues[0]);
+        Set <Song>probableSongs = pcm.getSongSet();
+
+        for(int i =1; i<pcmValues.length; i++){
+
+            pcm = this.findByPcmValue(pcmValues[i]);
+            Set <Song>others = pcm.getSongSet();
+            //intersection
+            probableSongs.retainAll(others);
+
+
+        }
+
+        return probableSongs;
+
 
     }
 
