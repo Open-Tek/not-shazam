@@ -17,7 +17,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import java.util.Date;
 
-@MappedSuperclass
 public abstract class BaseEntity {
 
     @JsonIgnore

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -86,7 +87,7 @@ public class PcmService {
                         while( i < bufSize ){
                             data = header.getShortFromBuffer(i);
                             // todo bind data with music info
-
+                            this.bindData(data);
                             i+=2;
                         }
                     }
@@ -96,6 +97,7 @@ public class PcmService {
                         while( i< bufSize){
                             data = header.getIntFromBuffer(i);
                             //todo bind data with music info
+                            this.bindData(data);
                             i+=4;
                         }
 
@@ -104,21 +106,30 @@ public class PcmService {
                         //error
                     }
                 }
+
             }catch ( Exception ie){
                 ie.printStackTrace();
             }
+            System.out.println("done with uploading and binding");
+
         }
 
-        private void bindData(int data, Song song){
+        private void bindData(int data){
+            System.out.println("data "+data);
+
             PcmValue pcm = PcmService.this.pcmValuesRepo.findByPcmValue((long)data);
-            if ( pcm!= null){
+            if ( pcm == null){
                 pcm = new PcmValue();
                 pcm.setPcmValue((long)data);
+                pcm.setSongSet(new HashSet<Song>());
+            }
+            //Hibernate.initialize(pcm.getSongSet());
+            pcm.getSongSet().add(this.refSong);
+            try {
+                PcmService.this.pcmValuesRepo.save(pcm);
+            }catch (Exception e){
 
             }
-            pcm.getSongSet().add(song);
-            PcmService.this.pcmValuesRepo.save(pcm);
-
         }
 
 

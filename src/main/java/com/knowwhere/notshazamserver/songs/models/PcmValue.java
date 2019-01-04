@@ -31,11 +31,7 @@ public class PcmValue extends BaseEntity {
 
     /*private int channelType;*/
 
-    @ManyToMany(
-        fetch = FetchType.EAGER,
-            cascade = CascadeType.ALL
-
-    )
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name="pcm_songs",
             joinColumns = { @JoinColumn(name="pcm_id")},

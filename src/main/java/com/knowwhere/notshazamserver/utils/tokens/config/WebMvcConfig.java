@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
 
+/*
 @ComponentScan
 @Configuration
 public class WebMvcConfig  implements WebMvcConfigurer {
@@ -34,3 +35,4 @@ public class WebMvcConfig  implements WebMvcConfigurer {
         registry.addInterceptor(this.createTokenInterceptorHandler()).excludePathPatterns(PATHS_TO_BE_EXCLUDED);
     }
 }
+*/
