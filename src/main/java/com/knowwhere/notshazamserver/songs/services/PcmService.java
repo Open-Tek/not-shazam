@@ -36,6 +36,8 @@ public class PcmService {
 
     public Set<Song> getPcmSongs(Long pcmValues[]){
         PcmValue pcm = this.findByPcmValue(pcmValues[0]);
+        if (pcm == null)
+            return null;
         Set <Song>probableSongs = pcm.getSongSet();
 
         for(int i =1; i<pcmValues.length; i++){

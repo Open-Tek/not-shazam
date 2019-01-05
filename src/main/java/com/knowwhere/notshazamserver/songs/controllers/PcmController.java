@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/")
@@ -39,9 +40,23 @@ public class PcmController {
         return ResponseEntity.ok().body(this.pcmService.insertSong(a, multipartFile));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getSongSet(@RequestParam("pcm[]") Long []pcmValues){
-        return ResponseEntity.ok().body(this.pcmService.getPcmSongs(pcmValues));
+    @PostMapping("song")
+    public ResponseEntity<?> getSongSet(@RequestBody PcmValuesArrayWrapper wrapper){
+
+        return ResponseEntity.ok().body(this.pcmService.getPcmSongs(wrapper.getPcmValues()));
+    }
+
+
+    static class PcmValuesArrayWrapper{
+        private Long[] pcmValues;
+
+        public Long[] getPcmValues() {
+            return pcmValues;
+        }
+
+        public void setPcmValues(Long[] pcmValues) {
+            this.pcmValues = pcmValues;
+        }
     }
 
 
