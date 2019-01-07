@@ -108,6 +108,16 @@ public class WavFileHeader {
     }
 
     /**
+     * This method returns a byte of data from the specified index
+     * @param index: The index of the byte arr
+     * @return byte
+     */
+    public byte getByteFromBuffer(int index){
+        return this.byteBuffer.get(index);
+    }
+
+
+    /**
      * This helper method is to be used to fetch short(2 byte vals) When numchannels = 1
      * @param index: The index of the byte arr
      * @return int
@@ -125,6 +135,16 @@ public class WavFileHeader {
 
         return this.byteBuffer.getInt(index);
     }
+
+    /**
+     * This method retrieves 8byte values(long) when num channels are 4
+     * @param index: The index of the byte arr
+     * @return long
+     */
+    public long getLongFromBuffer(int index){
+        return this.byteBuffer.getLong(index);
+    }
+
 
     /**
      * This method returns the size of the internal byteBuffer being used.

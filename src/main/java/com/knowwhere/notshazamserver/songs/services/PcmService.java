@@ -1,6 +1,7 @@
 package com.knowwhere.notshazamserver.songs.services;
 
 import com.knowwhere.notshazamserver.base.core.WavFileHeader;
+import com.knowwhere.notshazamserver.base.model.Complex;
 import com.knowwhere.notshazamserver.songs.models.PcmValue;
 import com.knowwhere.notshazamserver.songs.models.Song;
 import com.knowwhere.notshazamserver.songs.repos.PcmValuesRepo;
@@ -26,10 +27,8 @@ public class PcmService {
         Song s = this.songRepo.findByNameAndArtist(song.getName(), song.getArtist());
         if (s == null) {
             s = this.songRepo.save(song);
-
         }
-
-        new WorkerThread(s, multipartFile.getBytes()).start();
+        new WorkerThread(s, multipartFile.getBytes());
         return s;
 
     }
@@ -71,43 +70,35 @@ public class PcmService {
         public WorkerThread(Song refSong, byte contents[]){
             this.refSong = refSong;
             this.fileContents = contents;
-
+            this.start();
         }
 
         @Override
         public void run(){
             try{
-                while(true) {
+                boolean tr = true;
+                //while(true) {
                     WavFileHeader header = new WavFileHeader(this.fileContents);
+
+                    System.out.println("Bits per sample "+header.getBitsPerSample());
+                    System.out.println("Sample rate "+header.getSampleRate());
+
+                    System.out.println("Chunk size "+header.getDataChunk());
+                    System.out.println("For frame of 20ms num samples are"+(header.getSampleRate() * 20) );
+                    System.out.println("Size arr "+this.fileContents.length);
+                    System.out.println("wav header "+header.getBufferLength());
+
+                    //performing fft
 
                     int ret = header.getNumChannels();
                     int bufSize = header.getBufferLength();
-                    int i = 44;
-                    if( ret == 1 || ret == 2){
-                        //mono channel ... read 2 bytes
-                        short data ;
-                        while( i < bufSize ){
-                            data = header.getShortFromBuffer(i);
-                            // todo bind data with music info
-                            this.bindData(data);
-                            i+=2;
-                        }
-                    }
-                    else if( ret == 2){
-                        //stereo channel ... read 4 bytes
-                        int data;
-                        while( i< bufSize){
-                            data = header.getIntFromBuffer(i);
-                            //todo bind data with music info
-                            this.bindData(data);
-                            i+=4;
-                        }
+                    int bitsPerSample = header.getBitsPerSample();
 
 
-                    }else {
-                        //error
-                    }
-                }
+                    //size of the array is 8 bits/num bits per channel * size , since were holding n bits per sample, and dont need the extra space
+                    int sampleArraySize = (header.getBufferLength() * 8/ bitsPerSample );
+                    double samples[] = new double[sampleArraySize];
+                    this.prepareSamples(header, samples);
 
             }catch ( Exception ie){
                 ie.printStackTrace();
@@ -116,8 +107,49 @@ public class PcmService {
 
         }
 
+        private void prepareSamples(WavFileHeader header, double samples[]){
+            int arrayIndex = 44;//since the first 44 bytes store header info
+            int bitsPerSample = header.getBitsPerSample();
+            double maxValueForSample = (1 << (bitsPerSample -1)) +0.0;
+
+            for ( int i = 0; i< samples.length; i++){
+                long data = 0;
+                switch( bitsPerSample ){
+                    case 8:
+                        data = header.getByteFromBuffer(arrayIndex);
+                        arrayIndex++;
+                        break;
+                    case 16:
+                        data = header.getShortFromBuffer(arrayIndex);
+                        arrayIndex+=2;
+                        break;
+
+                    case 32:
+                        data = header.getIntFromBuffer(arrayIndex);
+                        arrayIndex+=4;
+                        break;
+
+                    case 64:
+                        data = header.getLongFromBuffer(arrayIndex);
+                        arrayIndex+=8;
+
+                }
+                samples[i] = data/ maxValueForSample;
+
+            }
+        }
+
+
+        private Complex[][] performFourier(){
+            Co
+        }
+
         private void bindData(int data){
             System.out.println("data "+data);
+
+
+
+
 
             PcmValue pcm = PcmService.this.pcmValuesRepo.findByPcmValue((long)data);
             if ( pcm == null){
