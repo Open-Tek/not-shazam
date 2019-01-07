@@ -1,6 +1,7 @@
 package com.knowwhere.notshazamserver.songs.services;
 
 import com.knowwhere.notshazamserver.base.core.FFT;
+import com.knowwhere.notshazamserver.base.core.RangeHelper;
 import com.knowwhere.notshazamserver.base.core.WavFileHeader;
 import com.knowwhere.notshazamserver.base.model.Complex;
 import com.knowwhere.notshazamserver.songs.models.PcmValue;
@@ -64,9 +65,10 @@ public class PcmService {
      * This thread must be a daemon thread, One that works in the background looking for a job in its blocking queue.
      * It holds a thread pool that it individually assigns jobs to
      */
-    private class WorkerThread extends Thread{
+    private class WorkerThread extends Thread {
         private byte fileContents[];
         private Song refSong;
+
 
 
         /*
@@ -110,7 +112,15 @@ public class PcmService {
                     int sampleArraySize = (header.getBufferLength() * 8/ bitsPerSample );
                     double samples[] = new double[sampleArraySize];
                     this.prepareSamples(header, samples);
-                    this.performFraming(header, samples);
+                    Complex fourierTransformedData[][] = this.performFraming(header, samples);
+                /**
+                 * The contents of this array would be arranged as so
+                 * the first index shows the frame index ie i or the sampled FT in time, the second index ie j shows the actual fourier transform for an instance of frequency
+                 */
+
+                int [][]points = RangeHelper.generateDataPoints(fourierTransformedData);
+
+
 
                 System.out.println("SAMPLED ARRAY SIZE "+sampleArraySize);
             }catch ( Exception ie){
@@ -164,7 +174,8 @@ public class PcmService {
             for ( int times = 0; times < sampledChunkSize; times ++){
                 /**
                  * Think of a page table offset mechanism
-                 * times is the first page dir entry, mul by 4K, + offset i to obtain page
+                 * times is the first page dir entry, mul by 4K, + offset i to obtain page.
+                 * Considering 4k frames at the moment
                  */
                 for( int i=0; i<FRAME_CHUNK_SIZE; i++)
                     arr[i] = new Complex(samples[ (times * FRAME_CHUNK_SIZE) + i], 0.0);
@@ -172,7 +183,6 @@ public class PcmService {
                 result[times] = FFT.fft(arr);
                 System.out.println("FINISHED ITERATION "+times+ " of "+sampledChunkSize);
             }
-            System.out.println("returning result");
             return result;
 
 

@@ -30,6 +30,18 @@ public class Complex {
         return this;
     }
 
+    public double getReal() {
+        return real;
+    }
+
+    public double getImaginary() {
+        return imaginary;
+    }
+
+    public double abs(){
+        return Math.hypot(this.real, this.imaginary);
+    }
+
     /**
      * This method adds 2 static complex numbers and stores the result in the first instance provided
      * @param complex1: Complex instance 1
