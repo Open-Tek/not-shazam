@@ -74,7 +74,7 @@ public class PcmService {
         it means that we have 44100 * 2 * 2 = 176 KB per second of sound.
         NOW we are going to be FRAMING 4K of these chunks
          */
-        private final static int FRAME_CHUNK_SIZE = 4000;//4K chunks
+        private final static int FRAME_CHUNK_SIZE = 4000;//K chunks
 
 
         public WorkerThread(Song refSong, byte contents[]){
