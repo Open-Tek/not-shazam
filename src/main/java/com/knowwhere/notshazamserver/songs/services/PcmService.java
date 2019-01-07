@@ -1,5 +1,6 @@
 package com.knowwhere.notshazamserver.songs.services;
 
+import com.knowwhere.notshazamserver.base.core.FFT;
 import com.knowwhere.notshazamserver.base.core.WavFileHeader;
 import com.knowwhere.notshazamserver.base.model.Complex;
 import com.knowwhere.notshazamserver.songs.models.PcmValue;
@@ -67,6 +68,15 @@ public class PcmService {
         private byte fileContents[];
         private Song refSong;
 
+
+        /*
+        The idea behind this is assuming you have a file sampled at 44100 Hz, having 2 channels and 2 byte data,
+        it means that we have 44100 * 2 * 2 = 176 KB per second of sound.
+        NOW we are going to be FRAMING 4K of these chunks
+         */
+        private final static int FRAME_CHUNK_SIZE = 4000;//4K chunks
+
+
         public WorkerThread(Song refSong, byte contents[]){
             this.refSong = refSong;
             this.fileContents = contents;
@@ -87,7 +97,8 @@ public class PcmService {
                     System.out.println("For frame of 20ms num samples are"+(header.getSampleRate() * 20) );
                     System.out.println("Size arr "+this.fileContents.length);
                     System.out.println("wav header "+header.getBufferLength());
-
+                System.out.println("channels "+header.getNumChannels() );
+                System.out.println("max sampling chunk size for 1000ms "+(header.getSampleRate()* header.getBitsPerSample()/2* header.getNumChannels()));
                     //performing fft
 
                     int ret = header.getNumChannels();
@@ -99,7 +110,9 @@ public class PcmService {
                     int sampleArraySize = (header.getBufferLength() * 8/ bitsPerSample );
                     double samples[] = new double[sampleArraySize];
                     this.prepareSamples(header, samples);
+                    this.performFraming(header, samples);
 
+                System.out.println("SAMPLED ARRAY SIZE "+sampleArraySize);
             }catch ( Exception ie){
                 ie.printStackTrace();
             }
@@ -112,7 +125,7 @@ public class PcmService {
             int bitsPerSample = header.getBitsPerSample();
             double maxValueForSample = (1 << (bitsPerSample -1)) +0.0;
 
-            for ( int i = 0; i< samples.length; i++){
+            for ( int i = 0; i< samples.length && arrayIndex<header.getBufferLength(); i++){
                 long data = 0;
                 switch( bitsPerSample ){
                     case 8:
@@ -140,8 +153,30 @@ public class PcmService {
         }
 
 
-        private Complex[][] performFourier(){
-            Co
+        private Complex[][] performFraming(WavFileHeader header, double[] samples){
+
+            int sampledChunkSize = samples.length/ FRAME_CHUNK_SIZE;
+            Complex arr[] = new Complex[FRAME_CHUNK_SIZE];//to be reused
+
+            Complex result[][] = new Complex[sampledChunkSize][];
+
+
+            for ( int times = 0; times < sampledChunkSize; times ++){
+                /**
+                 * Think of a page table offset mechanism
+                 * times is the first page dir entry, mul by 4K, + offset i to obtain page
+                 */
+                for( int i=0; i<FRAME_CHUNK_SIZE; i++)
+                    arr[i] = new Complex(samples[ (times * FRAME_CHUNK_SIZE) + i], 0.0);
+
+                result[times] = FFT.fft(arr);
+
+            }
+
+            return result;
+
+
+
         }
 
         private void bindData(int data){

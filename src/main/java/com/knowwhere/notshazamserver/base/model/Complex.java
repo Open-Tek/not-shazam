@@ -25,8 +25,8 @@ public class Complex {
     }
 
     public Complex mul(Complex complex){
-        this.real = this.real * complex.real - this.imaginary - complex.imaginary;
-        this.imaginary = this.real * complex.real + this.imaginary * complex.imaginary;
+        this.real = this.real * complex.real - this.imaginary * complex.imaginary;
+        this.imaginary = this.real * complex.imaginary + this.imaginary * complex.real;
         return this;
     }
 
