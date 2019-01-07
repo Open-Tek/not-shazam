@@ -16,8 +16,8 @@ public class FFT {
 
         if ( (size & 1) == 1) {
             // ideally an exception should be thrown for odd numbered lengths... making it even for the time being
-
-            size += 1;
+            System.out.println("SHOULDNT HAPPEN ");
+            return complexArray;
         }
 
 
@@ -31,9 +31,7 @@ public class FFT {
         Complex[] q = fft(evenIndexedHalf);
 
         Complex[] oddIndexedHalf = evenIndexedHalf;//reusing
-        //System.out.println("Arr size "+size+ " odd indexed "+oddIndexedHalf.length);
         for( int i = 0; i< (size>>1); i++){
-            System.out.println(i+ " i "+(2*i +1)+" 2i+1 "+oddIndexedHalf.length+" odd len "+complexArray.length+" main len");
             oddIndexedHalf[i] = complexArray[2*i + 1];
         }
 

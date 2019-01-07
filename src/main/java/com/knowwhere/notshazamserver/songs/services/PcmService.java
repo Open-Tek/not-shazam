@@ -170,9 +170,9 @@ public class PcmService {
                     arr[i] = new Complex(samples[ (times * FRAME_CHUNK_SIZE) + i], 0.0);
 
                 result[times] = FFT.fft(arr);
-
+                System.out.println("FINISHED ITERATION "+times+ " of "+sampledChunkSize);
             }
-
+            System.out.println("returning result");
             return result;
 
 
