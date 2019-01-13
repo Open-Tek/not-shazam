@@ -9,12 +9,16 @@ public class RangeHelper {
      * 30-40Hz , 40-80, 80-120 cover low tones say for the bass guitar,
      * 120-180Hz, 180-300Hz are for the middle tones,
      * Above 300 is for higher tones (for vocals and other instruments).
+     * NOTE ----- For the moment ASSUMING 4 ranges only.
      */
     public final static int RANGE[] = {
             40,80,120,180,300
     };
 
     private final static int FUZ_FACTOR = 2;
+
+
+
 
     /**
      * Returns an index given the frequency. This helps in finding the range of frequencies we are iterested in.
@@ -29,10 +33,12 @@ public class RangeHelper {
     }
 
 
-    public static int[][] generateDataPoints(Complex [][]fourierTransformedComplexMatrix){
-
+    public static int[][] generateDataPoints(Complex [][]fourierTransformedComplexMatrix, int startinTimeInMillis){
+        int startTime = startinTimeInMillis;
         double highscore[][] = new double[fourierTransformedComplexMatrix.length][RANGE.length];
         int points[][] = new int[fourierTransformedComplexMatrix.length][RANGE.length];
+
+
 
         for ( int time = 0; time < fourierTransformedComplexMatrix.length; time++){
 

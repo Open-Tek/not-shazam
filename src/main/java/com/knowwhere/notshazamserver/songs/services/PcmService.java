@@ -1,6 +1,7 @@
 package com.knowwhere.notshazamserver.songs.services;
 
 import com.knowwhere.notshazamserver.base.core.FFT;
+import com.knowwhere.notshazamserver.base.core.FramingHelper;
 import com.knowwhere.notshazamserver.base.core.RangeHelper;
 import com.knowwhere.notshazamserver.base.core.WavFileHeader;
 import com.knowwhere.notshazamserver.base.model.Complex;
@@ -76,7 +77,6 @@ public class PcmService {
         it means that we have 44100 * 2 * 2 = 176 KB per second of sound.
         NOW we are going to be FRAMING 4K of these chunks
          */
-        private final static int FRAME_CHUNK_SIZE = 4000;//K chunks
 
 
         public WorkerThread(Song refSong, byte contents[]){
@@ -111,14 +111,14 @@ public class PcmService {
                     //size of the array is 8 bits/num bits per channel * size , since were holding n bits per sample, and dont need the extra space
                     int sampleArraySize = (header.getBufferLength() * 8/ bitsPerSample );
                     double samples[] = new double[sampleArraySize];
-                    this.prepareSamples(header, samples);
-                    Complex fourierTransformedData[][] = this.performFraming(header, samples);
+                    FramingHelper.prepareSamples(header, samples);
+                    Complex fourierTransformedData[][] = FramingHelper.performFraming(header, samples);
                 /**
                  * The contents of this array would be arranged as so
                  * the first index shows the frame index ie i or the sampled FT in time, the second index ie j shows the actual fourier transform for an instance of frequency
                  */
-
-                int [][]points = RangeHelper.generateDataPoints(fourierTransformedData);
+                    int startingTimeInMillis = (header.getSampleRate()* header.getBitsPerSample()/2* header.getNumChannels()) / FramingHelper.FRAME_CHUNK_SIZE * 1000;
+                     int [][]points = RangeHelper.generateDataPoints(fourierTransformedData, startingTimeInMillis);
 
 
 
@@ -130,64 +130,9 @@ public class PcmService {
 
         }
 
-        private void prepareSamples(WavFileHeader header, double samples[]){
-            int arrayIndex = 44;//since the first 44 bytes store header info
-            int bitsPerSample = header.getBitsPerSample();
-            double maxValueForSample = (1 << (bitsPerSample -1)) +0.0;
-
-            for ( int i = 0; i< samples.length && arrayIndex<header.getBufferLength(); i++){
-                long data = 0;
-                switch( bitsPerSample ){
-                    case 8:
-                        data = header.getByteFromBuffer(arrayIndex);
-                        arrayIndex++;
-                        break;
-                    case 16:
-                        data = header.getShortFromBuffer(arrayIndex);
-                        arrayIndex+=2;
-                        break;
-
-                    case 32:
-                        data = header.getIntFromBuffer(arrayIndex);
-                        arrayIndex+=4;
-                        break;
-
-                    case 64:
-                        data = header.getLongFromBuffer(arrayIndex);
-                        arrayIndex+=8;
-
-                }
-                samples[i] = data/ maxValueForSample;
-
-            }
-        }
-
-
-        private Complex[][] performFraming(WavFileHeader header, double[] samples){
-
-            int sampledChunkSize = samples.length/ FRAME_CHUNK_SIZE;
-            Complex arr[] = new Complex[FRAME_CHUNK_SIZE];//to be reused
-
-            Complex result[][] = new Complex[sampledChunkSize][];
-
-
-            for ( int times = 0; times < sampledChunkSize; times ++){
-                /**
-                 * Think of a page table offset mechanism
-                 * times is the first page dir entry, mul by 4K, + offset i to obtain page.
-                 * Considering 4k frames at the moment
-                 */
-                for( int i=0; i<FRAME_CHUNK_SIZE; i++)
-                    arr[i] = new Complex(samples[ (times * FRAME_CHUNK_SIZE) + i], 0.0);
-
-                result[times] = FFT.fft(arr);
-                System.out.println("FINISHED ITERATION "+times+ " of "+sampledChunkSize);
-            }
-            return result;
 
 
 
-        }
 
         private void bindData(int data){
             System.out.println("data "+data);
