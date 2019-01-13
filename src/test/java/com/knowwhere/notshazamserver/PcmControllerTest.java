@@ -2,7 +2,7 @@ package com.knowwhere.notshazamserver;
 
 import com.knowwhere.notshazamserver.songs.controllers.PcmController;
 import com.knowwhere.notshazamserver.songs.models.Song;
-import com.knowwhere.notshazamserver.songs.services.PcmService;
+import com.knowwhere.notshazamserver.songs.services.HashService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -27,7 +27,7 @@ public class PcmControllerTest {
 
 
     @MockBean
-    private PcmService pcmService;
+    private HashService hashService;
     File testFile = new File("/home/rohan/Music/goat.wav");
 
     @Test
@@ -35,7 +35,7 @@ public class PcmControllerTest {
         MultipartFile file = new MockMultipartFile("Goat", Files.readAllBytes(testFile.toPath()));
 
         Mockito.when(
-        pcmService.insertSong(song, file)
+        hashService.insertSong(song, file)
         ).thenReturn(song);
     }
 

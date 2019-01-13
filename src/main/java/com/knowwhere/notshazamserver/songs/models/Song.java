@@ -25,7 +25,7 @@ public class Song extends BaseEntity {
             cascade = CascadeType.ALL,
             mappedBy = "songSet"
     )
-    private Set<PcmValue> pcmValues;*/
+    private Set<HashVals> pcmValues;*/
 
     private String artist;
 
@@ -63,11 +63,11 @@ public class Song extends BaseEntity {
         this.artist = artist;
     }
 /*
-    public Set<PcmValue> getPcmValues() {
+    public Set<HashVals> getPcmValues() {
         return pcmValues;
     }
 
-    public void setPcmValues(Set<PcmValue> pcmValues) {
+    public void setPcmValues(Set<HashVals> pcmValues) {
         this.pcmValues = pcmValues;
     }*/
 }

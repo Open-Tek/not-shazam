@@ -11,33 +11,39 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+
 import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.Set;
 
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Entity
-public class PcmValue extends BaseEntity {
+public class HashVals extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NaturalId
-    private Long pcmValue;
+    private Long hashValue;
 
     /*private int channelType;*/
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name="pcm_songs",
-            joinColumns = { @JoinColumn(name="pcm_id")},
-            inverseJoinColumns = { @JoinColumn(name = "song_id")}
-    )
-    private Set<Song> songSet = new HashSet<>();
+    private Set<DataPoint> dataPoints;
+
+    public HashVals(){
+
+    }
+
+    public HashVals(Long hashValue, Set<DataPoint> dataPoints) {
+        this.hashValue = hashValue;
+        this.dataPoints = dataPoints;
+    }
+
+    public HashVals(Long hashValue){
+        this(hashValue, new HashSet<>());
+    }
 
     public Long getId() {
         return id;
@@ -47,19 +53,19 @@ public class PcmValue extends BaseEntity {
         this.id = id;
     }
 
-    public Long getPcmValue() {
-        return pcmValue;
+    public Long getHashValue() {
+        return hashValue;
     }
 
-    public void setPcmValue(Long pcmValue) {
-        this.pcmValue = pcmValue;
+    public void setHashValue(Long hashValue) {
+        this.hashValue = hashValue;
     }
 
-    public Set<Song> getSongSet() {
-        return songSet;
+    public Set<DataPoint> getDataPoints() {
+        return dataPoints;
     }
 
-    public void setSongSet(Set<Song> songSet) {
-        this.songSet = songSet;
+    public void setDataPoints(Set<DataPoint> dataPoints) {
+        this.dataPoints = dataPoints;
     }
 }

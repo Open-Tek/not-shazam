@@ -14,7 +14,7 @@ public class DataPoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int timeInMillis;
+    private Long timeInMillis;
 
     @ManyToOne
     @JoinColumn(name = "song_id")
@@ -23,7 +23,7 @@ public class DataPoint {
     public DataPoint(){}
 
 
-    public DataPoint(int timeInMillis, Song song) {
+    public DataPoint(long timeInMillis, Song song) {
         this.timeInMillis = timeInMillis;
         this.song = song;
     }
@@ -36,11 +36,11 @@ public class DataPoint {
         this.id = id;
     }
 
-    public int getTimeInMillis() {
+    public Long getTimeInMillis() {
         return timeInMillis;
     }
 
-    public void setTimeInMillis(int timeInMillis) {
+    public void setTimeInMillis(Long timeInMillis) {
         this.timeInMillis = timeInMillis;
     }
 

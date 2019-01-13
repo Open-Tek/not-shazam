@@ -1,27 +1,26 @@
 package com.knowwhere.notshazamserver.songs.services;
 
-import com.knowwhere.notshazamserver.base.core.FFT;
 import com.knowwhere.notshazamserver.base.core.FramingHelper;
 import com.knowwhere.notshazamserver.base.core.RangeHelper;
 import com.knowwhere.notshazamserver.base.core.WavFileHeader;
 import com.knowwhere.notshazamserver.base.model.Complex;
-import com.knowwhere.notshazamserver.songs.models.PcmValue;
+import com.knowwhere.notshazamserver.songs.models.DataPoint;
+import com.knowwhere.notshazamserver.songs.models.HashVals;
 import com.knowwhere.notshazamserver.songs.models.Song;
-import com.knowwhere.notshazamserver.songs.repos.PcmValuesRepo;
+import com.knowwhere.notshazamserver.songs.repos.HashValsRepo;
 import com.knowwhere.notshazamserver.songs.repos.SongRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
-public class PcmService {
+public class HashService {
 
     @Autowired
-    private PcmValuesRepo pcmValuesRepo;
+    private HashValsRepo hashValsRepo;
 
     @Autowired
     private SongRepo songRepo;
@@ -37,7 +36,7 @@ public class PcmService {
     }
 
     public Set<Song> getPcmSongs(Long pcmValues[]){
-        PcmValue pcm = this.findByPcmValue(pcmValues[0]);
+        HashVals pcm = this.findByPcmValue(pcmValues[0]);
         if (pcm == null)
             return null;
         Set <Song>probableSongs = pcm.getSongSet();
@@ -57,8 +56,8 @@ public class PcmService {
 
     }
 
-    public PcmValue findByPcmValue(Long pcmValue){
-        return this.pcmValuesRepo.findByPcmValue(pcmValue);
+    public HashVals findByPcmValue(Long pcmValue){
+        return this.hashValsRepo.findByPcmValue(pcmValue);
     }
 
 
@@ -66,7 +65,7 @@ public class PcmService {
      * This thread must be a daemon thread, One that works in the background looking for a job in its blocking queue.
      * It holds a thread pool that it individually assigns jobs to
      */
-    private class WorkerThread extends Thread {
+    private class WorkerThread extends Thread implements RangeHelper.HashDataPointStoreCallback{
         private byte fileContents[];
         private Song refSong;
 
@@ -92,17 +91,6 @@ public class PcmService {
                 //while(true) {
                     WavFileHeader header = new WavFileHeader(this.fileContents);
 
-                    System.out.println("Bits per sample "+header.getBitsPerSample());
-                    System.out.println("Sample rate "+header.getSampleRate());
-
-                    System.out.println("Chunk size "+header.getDataChunk());
-                    System.out.println("For frame of 20ms num samples are"+(header.getSampleRate() * 20) );
-                    System.out.println("Size arr "+this.fileContents.length);
-                    System.out.println("wav header "+header.getBufferLength());
-                System.out.println("channels "+header.getNumChannels() );
-                System.out.println("max sampling chunk size for 1000ms "+(header.getSampleRate()* header.getBitsPerSample()/2* header.getNumChannels()));
-                    //performing fft
-
                     int ret = header.getNumChannels();
                     int bufSize = header.getBufferLength();
                     int bitsPerSample = header.getBitsPerSample();
@@ -113,13 +101,9 @@ public class PcmService {
                     double samples[] = new double[sampleArraySize];
                     FramingHelper.prepareSamples(header, samples);
                     Complex fourierTransformedData[][] = FramingHelper.performFraming(header, samples);
-                /**
-                 * The contents of this array would be arranged as so
-                 * the first index shows the frame index ie i or the sampled FT in time, the second index ie j shows the actual fourier transform for an instance of frequency
-                 */
-                    int startingTimeInMillis = (header.getSampleRate()* header.getBitsPerSample()/2* header.getNumChannels()) / FramingHelper.FRAME_CHUNK_SIZE * 1000;
-                     int [][]points = RangeHelper.generateDataPoints(fourierTransformedData, startingTimeInMillis);
 
+                    long startingTimeInMillis = (header.getSampleRate()* header.getBitsPerSample()/2* header.getNumChannels()) / FramingHelper.FRAME_CHUNK_SIZE * 1000;
+                     int [][]points = RangeHelper.generateDataPoints(fourierTransformedData, startingTimeInMillis, this);
 
 
                 System.out.println("SAMPLED ARRAY SIZE "+sampleArraySize);
@@ -130,37 +114,14 @@ public class PcmService {
 
         }
 
+        @Override
+        public void bindHashToSong(long hash, long timeInMillis) {
+            HashVals hashVals = HashService.this.hashValsRepo.findByHashValue(hash).orElseGet(() -> new HashVals(hash));
+            hashVals.getDataPoints().add(new DataPoint(timeInMillis, this.refSong));
 
+            HashService.this.hashValsRepo.save(hashVals);
 
-
-
-        private void bindData(int data){
-            System.out.println("data "+data);
-
-
-
-
-
-            PcmValue pcm = PcmService.this.pcmValuesRepo.findByPcmValue((long)data);
-            if ( pcm == null){
-                pcm = new PcmValue();
-                pcm.setPcmValue((long)data);
-                pcm.setSongSet(new HashSet<Song>());
-            }
-            //Hibernate.initialize(pcm.getSongSet());
-            pcm.getSongSet().add(this.refSong);
-            try {
-                PcmService.this.pcmValuesRepo.save(pcm);
-            }catch (Exception e){
-
-            }
         }
-
-
-
-
-
-
     }
 
 
